@@ -11,18 +11,18 @@
 
 const int MAX_SHAPES = 121;
 
-class MyEditor {
+class MyEditor { 
 private:
-    Shape** pcshape;
-    int shapeCount;
-    int currentShapeType;
+    Shape** pcshape; 
+    int shapeCount; 
+    int currentShapeType; 
     bool isDrawing;
     int startX, startY;
     int currentX, currentY;
 
 public:
     MyEditor() {
-        pcshape = new Shape * [MAX_SHAPES];
+        pcshape = new Shape * [MAX_SHAPES]; 
         for (int i = 0; i < MAX_SHAPES; i++) {
             pcshape[i] = nullptr;
         }
@@ -47,7 +47,7 @@ public:
         return currentShapeType;
     }
 
-    void OnLButtonDown(HWND hwnd, LPARAM lParam) {
+    void OnLButtonDown(HWND hwnd, LPARAM lParam) { 
         isDrawing = true;
         startX = LOWORD(lParam);
         startY = HIWORD(lParam);
@@ -56,13 +56,13 @@ public:
         SetCapture(hwnd);
     }
 
-    void OnMouseMove(HWND hwnd, LPARAM lParam) {
+    void OnMouseMove(HWND hwnd, LPARAM lParam) { 
         if (isDrawing) {
             HDC hdc = GetDC(hwnd);
             SetROP2(hdc, R2_NOTXORPEN);
 
             // Вимога завдання: гумовий слід завжди пунктирною (PS_DASH) лінією
-            HPEN hPenOld = (HPEN)SelectObject(hdc, CreatePen(PS_DASH, 1, RGB(0, 0, 0)));
+            HPEN hPenOld = (HPEN)SelectObject(hdc, CreatePen(PS_DASH, 1, RGB(0, 0, 0))); 
 
             if (currentShapeType == ID_OBJ_LINE || currentShapeType == ID_OBJ_LINECIRCLE) {
                 MoveToEx(hdc, startX, startY, NULL); LineTo(hdc, currentX, currentY);
@@ -93,7 +93,7 @@ public:
         }
     }
 
-    void OnLButtonUp(HWND hwnd, LPARAM lParam) {
+    void OnLButtonUp(HWND hwnd, LPARAM lParam) { 
         if (isDrawing) {
             isDrawing = false;
             ReleaseCapture();

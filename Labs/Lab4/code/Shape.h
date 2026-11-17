@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 
-class Shape {
+class Shape { 
 protected:
     int startX, startY;
     int endX, endY;
@@ -11,7 +11,7 @@ public:
         : startX(x1), startY(y1), endX(x2), endY(y2), color(col) {
     }
     virtual ~Shape() {}
-    virtual void Draw(HDC hdc) = 0;
+    virtual void Draw(HDC hdc) = 0; 
 };
 
 class PointShape : public Shape {
@@ -82,10 +82,10 @@ public:
 };
 
 // Нова фігура: Лінія з кружечками (через композицію, без множинного успадкування)
-class LineWithCirclesShape : public Shape {
-    LineShape line;
-    EllipseShape startCircle;
-    EllipseShape endCircle;
+class LineWithCirclesShape : public Shape { 
+    LineShape line; 
+    EllipseShape startCircle; 
+    EllipseShape endCircle; 
 public:
     LineWithCirclesShape(int x1, int y1, int x2, int y2, COLORREF col)
         : Shape(x1, y1, x2, y2, col),
@@ -102,9 +102,9 @@ public:
 };
 
 class CubeShape : public Shape {
-    LineShape f1, f2, f3, f4; // передній квадрат
-    LineShape b1, b2, b3, b4; // задній квадрат
-    LineShape c1, c2, c3, c4; // з'єднувальні лінії
+    LineShape f1, f2, f3, f4; // передній квадрат 
+    LineShape b1, b2, b3, b4; // задній квадрат 
+    LineShape c1, c2, c3, c4; // з'єднувальні лінії 
 public:
     CubeShape(int x1, int y1, int x2, int y2, COLORREF col)
         : Shape(x1, y1, x2, y2, col),
@@ -121,7 +121,7 @@ public:
         // Ребра, що з'єднують їх
         c1(x1, y1, x1 + 40, y1 - 40, RGB(0, 0, 255)),
         c2(x2, y1, x2 + 40, y1 - 40, RGB(0, 0, 255)),
-        c3(x2, y2, x2 + 40, y2 - 40, RGB(0, 0, 255)),
+        c3(x2, y2, x2 + 40, y2 - 40, RGB    (0, 0, 255)),
         c4(x1, y2, x1 + 40, y2 - 40, RGB(0, 0, 255)) {
     }
 

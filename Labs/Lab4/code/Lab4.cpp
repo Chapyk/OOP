@@ -1,3 +1,4 @@
+
 #include <windows.h>
 #include <commctrl.h>
 #include "MyEditor.h"
@@ -10,11 +11,67 @@
 HINSTANCE hInst;
 HWND g_hWnd = NULL;
 HWND g_hWndToolbar = NULL;
+HIMAGELIST hImages = NULL;
 
-// Згідно з варіантом 21 (непарний номер): створюємо глобальний статичний об'єкт MyEditor
-MyEditor editor;
+
+MyEditor editor; 
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+void CreateIcons(HWND hwnd) {
+    hImages = ImageList_Create(24, 24, ILC_COLOR24 | ILC_MASK, 6, 0);
+
+    HDC hdc = GetDC(hwnd);
+    HDC memDC = CreateCompatibleDC(hdc);
+
+    for (int i = 0; i < 6; i++) {
+        HBITMAP bmp = CreateCompatibleBitmap(hdc, 24, 24);
+        HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, bmp);
+
+        RECT r = { 0, 0, 24, 24 };
+        FillRect(memDC, &r, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+        SelectObject(memDC, GetStockObject(BLACK_PEN));
+        SelectObject(memDC, GetStockObject(NULL_BRUSH));
+
+        if (i == 0) {
+            SelectObject(memDC, GetStockObject(BLACK_BRUSH));
+            Ellipse(memDC, 10, 10, 14, 14);
+        }
+        else if (i == 1) {
+            MoveToEx(memDC, 4, 20, NULL);
+            LineTo(memDC, 20, 4);
+        }
+        else if (i == 2) {
+            Rectangle(memDC, 4, 6, 20, 18);
+        }
+        else if (i == 3) {
+            Ellipse(memDC, 4, 6, 20, 18);
+        }
+        else if (i == 4) {
+            MoveToEx(memDC, 4, 20, NULL);
+            LineTo(memDC, 20, 4);
+            SelectObject(memDC, GetStockObject(BLACK_BRUSH));
+            Ellipse(memDC, 2, 18, 7, 23);
+            Ellipse(memDC, 17, 1, 22, 6);
+        }
+        else if (i == 5) {
+            Rectangle(memDC, 4, 9, 16, 21);
+            Rectangle(memDC, 9, 4, 21, 16);
+            MoveToEx(memDC, 4, 9, NULL); LineTo(memDC, 9, 4);
+            MoveToEx(memDC, 16, 9, NULL); LineTo(memDC, 21, 4);
+            MoveToEx(memDC, 16, 21, NULL); LineTo(memDC, 21, 16);
+            MoveToEx(memDC, 4, 21, NULL); LineTo(memDC, 9, 16);
+        }
+
+        SelectObject(memDC, oldBmp);
+        ImageList_AddMasked(hImages, bmp, RGB(255, 255, 255));
+        DeleteObject(bmp);
+    }
+
+    DeleteDC(memDC);
+    ReleaseDC(hwnd, hdc);
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
     hInst = hInstance;
@@ -65,13 +122,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     SendMessageW(g_hWndToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
 
-    TBBUTTON tbb[6] = {
-        { 0, ID_OBJ_POINT, TBSTATE_ENABLED | TBSTATE_CHECKED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Point" },
-        { 1, ID_OBJ_LINE, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Line" },
-        { 2, ID_OBJ_RECT, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Rectangle" },
-        { 3, ID_OBJ_ELLIPSE, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Ellipse" },
-        { 4, ID_OBJ_LINECIRCLE, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Line+Circle" },
-        { 5, ID_OBJ_CUBE, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Cube" }
+    CreateIcons(g_hWndToolbar);
+    SendMessageW(g_hWndToolbar, TB_SETIMAGELIST, 0, (LPARAM)hImages);
+
+    TBBUTTON tbb[6] = { 
+        { 0, ID_OBJ_POINT, TBSTATE_ENABLED | TBSTATE_CHECKED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 1, ID_OBJ_LINE, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 2, ID_OBJ_RECT, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 3, ID_OBJ_ELLIPSE, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 4, ID_OBJ_LINECIRCLE, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 5, ID_OBJ_CUBE, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 }
     };
 
     SendMessageW(g_hWndToolbar, TB_ADDBUTTONS, (WPARAM)6, (LPARAM)&tbb);
@@ -135,19 +195,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         }
         break;
     }
-    case WM_LBUTTONDOWN:
-        editor.OnLButtonDown(hWnd, lParam);
-        break;
-    case WM_MOUSEMOVE:
-        editor.OnMouseMove(hWnd, lParam);
-        break;
-    case WM_LBUTTONUP:
-        editor.OnLButtonUp(hWnd, lParam);
-        break;
+    case WM_LBUTTONDOWN:    
+        editor.OnLButtonDown(hWnd, lParam); 
+        break; 
+    case WM_MOUSEMOVE: 
+        editor.OnMouseMove(hWnd, lParam); 
+        break; 
+    case WM_LBUTTONUP: 
+        editor.OnLButtonUp(hWnd, lParam); 
+        break; 
     case WM_PAINT:
         editor.OnPaint(hWnd);
         break;
     case WM_DESTROY:
+        SendMessageW(g_hWndToolbar, TB_SETIMAGELIST, 0, 0);
+        if (hImages != NULL) ImageList_Destroy(hImages);
         PostQuitMessage(0);
         break;
     default:
