@@ -11,11 +11,11 @@ public:
         : startX(x1), startY(y1), endX(x2), endY(y2), color(col) {
     }
     virtual ~Shape() {}
-    virtual void Draw(HDC hdc) = 0; // Чисто віртуальна функція (поліморфізм)
+    virtual void Draw(HDC hdc) = 0; // Чисто віртуальна функція (поліморфізм) 
 };
 
 // point
-class PointShape : public Shape {
+class PointShape : public Shape { 
 public:
     PointShape(int x1, int y1, COLORREF col) : Shape(x1, y1, x1, y1, col) {}
     void Draw(HDC hdc) override {
@@ -34,7 +34,7 @@ public:
 };
 
 // line
-class LineShape : public Shape {
+class LineShape : public Shape { 
 public:
     LineShape(int x1, int y1, int x2, int y2, COLORREF col) : Shape(x1, y1, x2, y2, col) {}
     void Draw(HDC hdc) override {
@@ -48,7 +48,7 @@ public:
 };
 
 // rectangle (з центру, синій контур, без заповнення)
-class RectShape : public Shape {
+class RectShape : public Shape { 
 public:
     RectShape(int x1, int y1, int x2, int y2, COLORREF col) : Shape(x1, y1, x2, y2, col) {}
     void Draw(HDC hdc) override {
@@ -68,7 +68,7 @@ public:
 };
 
 // ellipse (за двома кутами, синій контур, з заповненням)
-class EllipseShape : public Shape {
+class EllipseShape : public Shape { 
 public:
     EllipseShape(int x1, int y1, int x2, int y2, COLORREF col) : Shape(x1, y1, x2, y2, col) {}
     void Draw(HDC hdc) override {

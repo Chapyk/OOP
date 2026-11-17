@@ -1,3 +1,4 @@
+
 #include <windows.h>
 #include <commctrl.h>
 #include "Shape.h"
@@ -15,9 +16,10 @@
 HINSTANCE hInst;
 HWND g_hWnd = NULL;
 HWND g_hWndToolbar = NULL;
+HIMAGELIST hImages = NULL;
 
-const int MAX_SHAPES = 121; // Варіант 21: розмір масиву 121
-Shape** pcshape = nullptr; // Динамічний масив вказівників
+const int MAX_SHAPES = 121;
+Shape** pcshape = nullptr;
 int shapeCount = 0;
 
 int currentShapeType = ID_OBJ_POINT;
@@ -26,6 +28,45 @@ int startX = 0, startY = 0;
 int currentX = 0, currentY = 0;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+void CreateIcons(HWND hwnd) {
+    hImages = ImageList_Create(24, 24, ILC_COLOR24 | ILC_MASK, 4, 0);
+
+    HDC hdc = GetDC(hwnd);
+    HDC memDC = CreateCompatibleDC(hdc);
+
+    for (int i = 0; i < 4; i++) {
+        HBITMAP bmp = CreateCompatibleBitmap(hdc, 24, 24);
+        HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, bmp);
+
+        RECT r = { 0, 0, 24, 24 };
+        FillRect(memDC, &r, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+        SelectObject(memDC, GetStockObject(BLACK_PEN));
+        SelectObject(memDC, GetStockObject(NULL_BRUSH));
+
+        if (i == 0) {
+            SelectObject(memDC, GetStockObject(BLACK_BRUSH));
+            Ellipse(memDC, 10, 10, 14, 14);
+        }
+        else if (i == 1) {
+            MoveToEx(memDC, 4, 20, NULL);
+            LineTo(memDC, 20, 4);
+        }
+        else if (i == 2) {
+            Rectangle(memDC, 4, 6, 20, 18);
+        }
+        else if (i == 3) {
+            Ellipse(memDC, 4, 6, 20, 18);
+        }
+
+        SelectObject(memDC, oldBmp);
+        ImageList_AddMasked(hImages, bmp, RGB(255, 255, 255));
+        DeleteObject(bmp);
+    }
+
+    DeleteDC(memDC);
+    ReleaseDC(hwnd, hdc);
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
     hInst = hInstance;
@@ -67,24 +108,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     if (!g_hWnd) return FALSE;
 
-    // Створення панелі інструментів (Toolbar) з підтримкою підказок (tooltips)
     g_hWndToolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, NULL,
         WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS, 0, 0, 0, 0,
         g_hWnd, (HMENU)1, hInstance, NULL);
 
     SendMessageW(g_hWndToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+    CreateIcons(g_hWndToolbar);
+    SendMessageW(g_hWndToolbar, TB_SETIMAGELIST, 0, (LPARAM)hImages);
 
     TBBUTTON tbb[4] = {
-        { 0, ID_OBJ_POINT, TBSTATE_ENABLED | TBSTATE_CHECKED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Point" },
-        { 1, ID_OBJ_LINE, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Line" },
-        { 2, ID_OBJ_RECT, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Rectangle" },
-        { 3, ID_OBJ_ELLIPSE, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, (INT_PTR)L"Ellipse" }
+        { 0, ID_OBJ_POINT, TBSTATE_ENABLED | TBSTATE_CHECKED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 1, ID_OBJ_LINE, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 2, ID_OBJ_RECT, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 },
+        { 3, ID_OBJ_ELLIPSE, TBSTATE_ENABLED, BTNS_CHECKGROUP, {0}, 0, -1 }
     };
 
     SendMessageW(g_hWndToolbar, TB_ADDBUTTONS, (WPARAM)4, (LPARAM)&tbb);
-    SendMessageW(g_hWndToolbar, TB_AUTOSIZE, 0, 0); // Автоматичне підлаштування розміру тулбара
+    SendMessageW(g_hWndToolbar, TB_AUTOSIZE, 0, 0);
 
-    // Виділення пам'яті під динамічний масив
     pcshape = new Shape * [MAX_SHAPES];
     for (int i = 0; i < MAX_SHAPES; i++) {
         pcshape[i] = nullptr;
@@ -99,7 +140,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         DispatchMessage(&msg);
     }
 
-    // Звільнення динамічної пам'яті
     for (int i = 0; i < shapeCount; i++) {
         delete pcshape[i];
     }
@@ -133,7 +173,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         }
         else if (id >= ID_OBJ_POINT && id <= ID_OBJ_ELLIPSE) {
             currentShapeType = id;
-            // Синхронізація вибору між меню та кнопками Toolbar
             SendMessageW(g_hWndToolbar, TB_CHECKBUTTON, ID_OBJ_POINT, (LPARAM)MAKELONG(id == ID_OBJ_POINT ? TRUE : FALSE, 0));
             SendMessageW(g_hWndToolbar, TB_CHECKBUTTON, ID_OBJ_LINE, (LPARAM)MAKELONG(id == ID_OBJ_LINE ? TRUE : FALSE, 0));
             SendMessageW(g_hWndToolbar, TB_CHECKBUTTON, ID_OBJ_RECT, (LPARAM)MAKELONG(id == ID_OBJ_RECT ? TRUE : FALSE, 0));
@@ -142,7 +181,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         break;
     }
     case WM_NOTIFY: {
-        // Обробка підказок (tooltips) для тулбара
         LPNMHDR pnmh = (LPNMHDR)lParam;
         if (pnmh->code == TTN_GETDISPINFOW) {
             LPNMTTDISPINFOW pdi = (LPNMTTDISPINFOW)lParam;
@@ -167,7 +205,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             HDC hdc = GetDC(hWnd);
             SetROP2(hdc, R2_NOTXORPEN);
 
-            // Варіант 21: гумовий слід штриховою лінією (PS_DASH)
             HPEN hPenOld = (HPEN)SelectObject(hdc, CreatePen(PS_DASH, 1, RGB(0, 0, 0)));
 
             if (currentShapeType == ID_OBJ_LINE) {
@@ -235,6 +272,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         break;
     }
     case WM_DESTROY:
+        SendMessageW(g_hWndToolbar, TB_SETIMAGELIST, 0, 0);
+        if (hImages != NULL) ImageList_Destroy(hImages);
+
         PostQuitMessage(0);
         break;
     default:
