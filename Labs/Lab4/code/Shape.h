@@ -1,7 +1,8 @@
+
 #pragma once
 #include <windows.h>
 
-class Shape { 
+class Shape {
 protected:
     int startX, startY;
     int endX, endY;
@@ -11,7 +12,7 @@ public:
         : startX(x1), startY(y1), endX(x2), endY(y2), color(col) {
     }
     virtual ~Shape() {}
-    virtual void Draw(HDC hdc) = 0; 
+    virtual void Draw(HDC hdc) = 0;
 };
 
 class PointShape : public Shape {
@@ -82,10 +83,10 @@ public:
 };
 
 // Нова фігура: Лінія з кружечками (через композицію, без множинного успадкування)
-class LineWithCirclesShape : public Shape { 
-    LineShape line; 
-    EllipseShape startCircle; 
-    EllipseShape endCircle; 
+class LineWithCirclesShape : public Shape {
+    LineShape line;
+    EllipseShape startCircle;
+    EllipseShape endCircle;
 public:
     LineWithCirclesShape(int x1, int y1, int x2, int y2, COLORREF col)
         : Shape(x1, y1, x2, y2, col),
@@ -102,32 +103,27 @@ public:
 };
 
 class CubeShape : public Shape {
-    LineShape f1, f2, f3, f4; // передній квадрат 
-    LineShape b1, b2, b3, b4; // задній квадрат 
-    LineShape c1, c2, c3, c4; // з'єднувальні лінії 
+    RectShape front; // передній квадрат
+    RectShape back; // задній квадрат
+    LineShape c1, c2, c3, c4; // поєднувальні лінії
 public:
     CubeShape(int x1, int y1, int x2, int y2, COLORREF col)
         : Shape(x1, y1, x2, y2, col),
-        // Передній квадрат
-        f1(x1, y1, x2, y1, RGB(0, 0, 255)),
-        f2(x2, y1, x2, y2, RGB(0, 0, 255)),
-        f3(x2, y2, x1, y2, RGB(0, 0, 255)),
-        f4(x1, y2, x1, y1, RGB(0, 0, 255)),
-        // Задній квадрат (зміщений вправо-вгору на 40 пікселів)
-        b1(x1 + 40, y1 - 40, x2 + 40, y1 - 40, RGB(0, 0, 255)),
-        b2(x2 + 40, y1 - 40, x2 + 40, y2 - 40, RGB(0, 0, 255)),
-        b3(x2 + 40, y2 - 40, x1 + 40, y2 - 40, RGB(0, 0, 255)),
-        b4(x1 + 40, y2 - 40, x1 + 40, y1 - 40, RGB(0, 0, 255)),
-        // Ребра, що з'єднують їх
+        // передій квадрат
+        front(x1, y1, x2, y2, RGB(0, 0, 255)),
+        // задній квадрат (зміщений вправо-вгору на 40 пікселів)
+        back(x1 + 40, y1 - 40, x2 + 40, y2 - 40, RGB(0, 0, 255)),
+        // ребра що поєднують їх
         c1(x1, y1, x1 + 40, y1 - 40, RGB(0, 0, 255)),
         c2(x2, y1, x2 + 40, y1 - 40, RGB(0, 0, 255)),
-        c3(x2, y2, x2 + 40, y2 - 40, RGB    (0, 0, 255)),
+        c3(x2, y2, x2 + 40, y2 - 40, RGB(0, 0, 255)),
         c4(x1, y2, x1 + 40, y2 - 40, RGB(0, 0, 255)) {
     }
 
-    void Draw(HDC hdc) override {
-        f1.Draw(hdc); f2.Draw(hdc); f3.Draw(hdc); f4.Draw(hdc);
-        b1.Draw(hdc); b2.Draw(hdc); b3.Draw(hdc); b4.Draw(hdc);
+    void Draw(HDC hdc) override { 
+        front.Draw(hdc);
+        back.Draw(hdc);
         c1.Draw(hdc); c2.Draw(hdc); c3.Draw(hdc); c4.Draw(hdc);
     }
 };
+    
