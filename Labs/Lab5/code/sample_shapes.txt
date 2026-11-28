@@ -1,0 +1,6 @@
+PointShape	70	90	70	90
+LineShape	60	130	210	190
+RectShape	260	90	390	200
+EllipseShape	470	90	610	190
+LineWithCirclesShape	80	290	250	350
+CubeShape	400	300	510	410

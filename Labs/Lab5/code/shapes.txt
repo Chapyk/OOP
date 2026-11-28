@@ -1,0 +1,4 @@
+EllipseShape	641	166	641	166
+CubeShape	148	99	288	181
+CubeShape	437	199	550	289
+CubeShape	269	331	414	447
